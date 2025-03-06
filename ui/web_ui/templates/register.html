@@ -1,0 +1,185 @@
+
+{% extends "base.html" %}
+
+{% block title %}Register{% endblock %}
+
+{% block additional_head %}
+<style>
+    .content-area {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: calc(100vh - 70px);
+        background: linear-gradient(135deg, var(--primary-color-light), var(--primary-color));
+    }
+    
+    .register-container {
+        width: 400px;
+        background: var(--card-bg);
+        border-radius: 15px;
+        padding: 40px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        animation: fadeInUp 0.5s ease-out;
+    }
+    
+    .register-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    
+    .register-header h1 {
+        margin: 0;
+        color: var(--heading-color);
+        font-size: 28px;
+    }
+    
+    .register-header p {
+        margin: 10px 0 0;
+        color: var(--text-color-secondary);
+    }
+    
+    .form-group {
+        margin-bottom: 25px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--text-color);
+        font-weight: 500;
+    }
+    
+    .form-group input {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        background: var(--input-bg);
+        color: var(--text-color);
+        font-size: 16px;
+        transition: all 0.3s ease;
+    }
+    
+    .form-group input:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px var(--primary-color-transparent);
+        outline: none;
+    }
+    
+    .submit-btn {
+        width: 100%;
+        padding: 12px;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .submit-btn:hover {
+        background: var(--primary-color-dark);
+        transform: translateY(-2px);
+    }
+    
+    .submit-btn:active {
+        transform: translateY(0);
+    }
+    
+    .register-footer {
+        text-align: center;
+        margin-top: 30px;
+        color: var(--text-color-secondary);
+    }
+    
+    .register-footer a {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 600;
+    }
+    
+    .register-footer a:hover {
+        text-decoration: underline;
+    }
+    
+    .flash-messages {
+        margin-bottom: 20px;
+    }
+    
+    .flash-message {
+        padding: 12px 15px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        font-weight: 500;
+    }
+    
+    .flash-message.error {
+        background-color: rgba(255, 87, 87, 0.1);
+        border-left: 4px solid #ff5757;
+        color: #ff5757;
+    }
+    
+    .flash-message.success {
+        background-color: rgba(46, 213, 115, 0.1);
+        border-left: 4px solid #2ed573;
+        color: #2ed573;
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="register-container">
+    <div class="register-header">
+        <h1>Create Account</h1>
+        <p>Join RepoQueryChat to explore your code repositories</p>
+    </div>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+    
+    <form method="POST" action="{{ url_for('register') }}">
+        <div class="form-group">
+            <label for="name">Full Name</label>
+            <input type="text" id="name" name="name" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        
+        <button type="submit" class="submit-btn">Register</button>
+    </form>
+    
+    <div class="register-footer">
+        Already have an account? <a href="{{ url_for('login') }}">Login</a>
+    </div>
+</div>
+{% endblock %}

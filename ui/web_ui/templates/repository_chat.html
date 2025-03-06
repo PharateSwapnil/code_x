@@ -1,0 +1,947 @@
+
+{% extends "base.html" %}
+
+{% block title %}Repository Chat{% endblock %}
+
+{% block additional_head %}
+<style>
+    .repo-chat-container {
+        display: flex;
+        height: calc(100vh - 70px);
+    }
+    
+    /* Sidebar styles */
+    .sidebar {
+        width: 300px;
+        background: var(--sidebar-bg);
+        border-right: 1px solid var(--border-color);
+        display: flex;
+        flex-direction: column;
+        transition: width 0.3s ease;
+    }
+    
+    .sidebar-collapsed {
+        width: 60px;
+    }
+    
+    .sidebar-header {
+        padding: 15px;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .repo-input {
+        display: flex;
+        margin-bottom: 15px;
+    }
+    
+    .repo-input input {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid var(--border-color);
+        border-right: none;
+        border-radius: 6px 0 0 6px;
+        background: var(--input-bg);
+        color: var(--text-color);
+    }
+    
+    .repo-input button {
+        padding: 10px 15px;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 0 6px 6px 0;
+        cursor: pointer;
+    }
+    
+    .sidebar-controls {
+        padding: 15px;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .control-group {
+        margin-bottom: 15px;
+    }
+    
+    .control-group label {
+        display: block;
+        margin-bottom: 5px;
+        color: var(--text-color-secondary);
+        font-size: 14px;
+    }
+    
+    .control-group select,
+    .control-group input {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        background: var(--input-bg);
+        color: var(--text-color);
+    }
+    
+    .file-explorer {
+        flex: 1;
+        overflow-y: auto;
+        padding: 15px;
+    }
+    
+    .folder {
+        cursor: pointer;
+        margin-bottom: 5px;
+    }
+    
+    .folder-header {
+        display: flex;
+        align-items: center;
+        padding: 5px 0;
+    }
+    
+    .folder-icon {
+        margin-right: 5px;
+        color: var(--folder-color);
+    }
+    
+    .folder-name {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .folder-toggle {
+        margin-left: 5px;
+        transition: transform 0.2s ease;
+    }
+    
+    .folder-toggle.open {
+        transform: rotate(90deg);
+    }
+    
+    .folder-content {
+        margin-left: 15px;
+        display: none;
+    }
+    
+    .folder-content.open {
+        display: block;
+    }
+    
+    .file {
+        display: flex;
+        align-items: center;
+        padding: 5px 0;
+        cursor: pointer;
+        color: var(--text-color);
+    }
+    
+    .file:hover {
+        color: var(--primary-color);
+    }
+    
+    .file-icon {
+        margin-right: 5px;
+        color: var(--file-color);
+    }
+    
+    .file-name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .sidebar-toggle {
+        position: absolute;
+        left: 300px;
+        top: 85px;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 0 4px 4px 0;
+        padding: 5px 10px;
+        cursor: pointer;
+        z-index: 100;
+        transition: left 0.3s ease;
+    }
+    
+    .sidebar-toggle.collapsed {
+        left: 60px;
+    }
+    
+    /* Main content styles */
+    .main-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: var(--main-bg);
+    }
+    
+    /* File content area */
+    .file-content {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        display: none;
+    }
+    
+    .file-content.active {
+        display: block;
+    }
+    
+    .file-content-header {
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .file-path {
+        font-size: 14px;
+        color: var(--text-color-secondary);
+        margin-bottom: 5px;
+    }
+    
+    .back-to-chat {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 8px 12px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+    }
+    
+    .back-to-chat i {
+        margin-right: 5px;
+    }
+    
+    /* Chat area styles */
+    .chat-area {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .chat-messages {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+    }
+    
+    .message {
+        margin-bottom: 20px;
+        animation: fadeIn 0.3s ease-out;
+    }
+    
+    .message-user {
+        display: flex;
+        align-items: flex-start;
+    }
+    
+    .message-user .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--user-color);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 10px;
+        flex-shrink: 0;
+    }
+    
+    .message-ai {
+        display: flex;
+        align-items: flex-start;
+    }
+    
+    .message-ai .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--primary-color);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 10px;
+        flex-shrink: 0;
+    }
+    
+    .message-content {
+        flex: 1;
+        background: var(--message-bg);
+        border-radius: 10px;
+        padding: 15px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+    
+    .message-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 5px;
+    }
+    
+    .message-name {
+        font-weight: 600;
+        color: var(--heading-color);
+    }
+    
+    .message-time {
+        font-size: 12px;
+        color: var(--text-color-secondary);
+    }
+    
+    .message-body {
+        color: var(--text-color);
+        line-height: 1.5;
+    }
+    
+    .message-body p:first-child {
+        margin-top: 0;
+    }
+    
+    .message-body p:last-child {
+        margin-bottom: 0;
+    }
+    
+    .message-body pre {
+        background: var(--code-bg);
+        border-radius: 4px;
+        padding: 10px;
+        overflow-x: auto;
+        margin: 10px 0;
+    }
+    
+    .message-body code {
+        font-family: 'Courier New', monospace;
+    }
+    
+    .message-sources {
+        margin-top: 10px;
+        font-size: 12px;
+        color: var(--text-color-secondary);
+    }
+    
+    .source-file {
+        display: inline-block;
+        background: var(--tag-bg);
+        color: var(--primary-color);
+        padding: 2px 8px;
+        border-radius: 4px;
+        margin-right: 5px;
+        margin-bottom: 5px;
+        cursor: pointer;
+    }
+    
+    .chat-input {
+        padding: 15px;
+        border-top: 1px solid var(--border-color);
+        background: var(--input-area-bg);
+    }
+    
+    .chat-input-container {
+        display: flex;
+        position: relative;
+    }
+    
+    .chat-input textarea {
+        flex: 1;
+        padding: 15px;
+        padding-right: 50px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        background: var(--input-bg);
+        color: var(--text-color);
+        font-family: inherit;
+        font-size: 16px;
+        resize: none;
+        height: 56px;
+        transition: height 0.2s ease;
+    }
+    
+    .chat-input textarea:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        height: 100px;
+    }
+    
+    .chat-input-actions {
+        position: absolute;
+        right: 10px;
+        bottom: 10px;
+    }
+    
+    .chat-input-send {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .chat-input-send:hover {
+        background: var(--primary-color-dark);
+        transform: translateY(-2px);
+    }
+    
+    .chat-input-send:active {
+        transform: translateY(0);
+    }
+    
+    .typing-indicator {
+        display: flex;
+        align-items: center;
+        margin-top: 5px;
+        color: var(--text-color-secondary);
+        font-size: 14px;
+        visibility: hidden;
+    }
+    
+    .typing-indicator.visible {
+        visibility: visible;
+    }
+    
+    .typing-dots {
+        display: flex;
+        margin-left: 5px;
+    }
+    
+    .typing-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--text-color-secondary);
+        margin-right: 3px;
+        animation: typingAnimation 1.4s infinite ease-in-out;
+    }
+    
+    .typing-dot:nth-child(1) { animation-delay: 0s; }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+    
+    @keyframes typingAnimation {
+        0% { transform: translateY(0); }
+        50% { transform: translateY(-5px); }
+        100% { transform: translateY(0); }
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Loading indicator */
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        color: white;
+        font-size: 20px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+    
+    .loading-overlay.active {
+        opacity: 1;
+        pointer-events: all;
+    }
+    
+    .spinner {
+        width: 50px;
+        height: 50px;
+        border: 5px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s linear infinite;
+        margin-bottom: 20px;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="repo-chat-container">
+    <!-- Sidebar toggle button -->
+    <button id="sidebar-toggle" class="sidebar-toggle">
+        <i class="fas fa-chevron-left" id="sidebar-toggle-icon"></i>
+    </button>
+    
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="repo-input">
+                <input type="text" id="repo-path" placeholder="Repository path or URL">
+                <button id="load-repo">
+                    <i class="fas fa-download"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="sidebar-controls">
+            <div class="control-group">
+                <label for="model-select">AI Model</label>
+                <select id="model-select">
+                    {% for model in models %}
+                        <option value="{{ model }}">{{ model }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="max-tokens">Max Tokens</label>
+                <input type="number" id="max-tokens" value="1000" min="100" max="16000">
+            </div>
+        </div>
+        
+        <div class="file-explorer" id="file-explorer">
+            <div class="empty-state">
+                <p>No repository loaded yet. Enter a path above.</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main content area -->
+    <div class="main-content">
+        <!-- File content area (hidden by default) -->
+        <div class="file-content" id="file-content">
+            <div class="file-content-header">
+                <div class="file-path" id="file-path"></div>
+                <button class="back-to-chat" id="back-to-chat">
+                    <i class="fas fa-arrow-left"></i> Back to Chat
+                </button>
+            </div>
+            <pre><code id="file-code-content"></code></pre>
+        </div>
+        
+        <!-- Chat area -->
+        <div class="chat-area" id="chat-area">
+            <div class="chat-messages" id="chat-messages">
+                <div class="message message-ai">
+                    <div class="avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="message-content">
+                        <div class="message-header">
+                            <div class="message-name">RepoQueryChat</div>
+                            <div class="message-time">Now</div>
+                        </div>
+                        <div class="message-body">
+                            <p>Welcome to RepoQueryChat! I can help you explore and understand code repositories.</p>
+                            <p>To get started, enter a repository path or URL in the sidebar, then ask me questions about the code.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chat-input">
+                <div class="chat-input-container">
+                    <textarea id="user-input" placeholder="Ask about the repository..." disabled></textarea>
+                    <div class="chat-input-actions">
+                        <button id="send-message" class="chat-input-send" disabled>
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="typing-indicator" id="typing-indicator">
+                    <span>AI is typing</span>
+                    <div class="typing-dots">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Loading overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="spinner"></div>
+        <div id="loading-message">Processing repository...</div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // DOM Elements
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const sidebarToggleIcon = document.getElementById('sidebar-toggle-icon');
+        const fileExplorer = document.getElementById('file-explorer');
+        const fileContent = document.getElementById('file-content');
+        const fileCodeContent = document.getElementById('file-code-content');
+        const filePath = document.getElementById('file-path');
+        const chatArea = document.getElementById('chat-area');
+        const chatMessages = document.getElementById('chat-messages');
+        const userInput = document.getElementById('user-input');
+        const sendMessage = document.getElementById('send-message');
+        const backToChat = document.getElementById('back-to-chat');
+        const repoPath = document.getElementById('repo-path');
+        const loadRepo = document.getElementById('load-repo');
+        const modelSelect = document.getElementById('model-select');
+        const maxTokens = document.getElementById('max-tokens');
+        const typingIndicator = document.getElementById('typing-indicator');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const loadingMessage = document.getElementById('loading-message');
+        
+        // Sidebar toggle
+        sidebarToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('sidebar-collapsed');
+            sidebarToggle.classList.toggle('collapsed');
+            
+            if (sidebar.classList.contains('sidebar-collapsed')) {
+                sidebarToggleIcon.classList.remove('fa-chevron-left');
+                sidebarToggleIcon.classList.add('fa-chevron-right');
+            } else {
+                sidebarToggleIcon.classList.remove('fa-chevron-right');
+                sidebarToggleIcon.classList.add('fa-chevron-left');
+            }
+        });
+        
+        // Back to chat button
+        backToChat.addEventListener('click', function() {
+            fileContent.classList.remove('active');
+            chatArea.style.display = 'flex';
+        });
+        
+        // Load repository
+        loadRepo.addEventListener('click', function() {
+            const path = repoPath.value.trim();
+            if (!path) {
+                alert('Please enter a repository path or URL');
+                return;
+            }
+            
+            loadRepository(path);
+        });
+        
+        // Enter key in repo path input
+        repoPath.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                loadRepo.click();
+            }
+        });
+        
+        // Send message button
+        sendMessage.addEventListener('click', function() {
+            sendUserMessage();
+        });
+        
+        // Enter key in user input (Ctrl+Enter or Shift+Enter)
+        userInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && (e.ctrlKey || e.shiftKey)) {
+                e.preventDefault();
+                sendUserMessage();
+            }
+        });
+        
+        // Load repository function
+        function loadRepository(path) {
+            showLoading('Processing repository...');
+            
+            fetch('/api/repository', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ repo_path: path })
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                
+                if (data.success) {
+                    // Enable chat input
+                    userInput.disabled = false;
+                    sendMessage.disabled = false;
+                    
+                    // Add success message
+                    addAIMessage(`Repository loaded successfully! I found ${data.document_count} documents to analyze. You can now ask me questions about the code.`);
+                    
+                    // Load file structure
+                    loadFileStructure();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                alert('Error: ' + error.message);
+            });
+        }
+        
+        // Load file structure function
+        function loadFileStructure() {
+            fetch('/api/directory_structure')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        renderFileStructure(data.structure);
+                    } else {
+                        console.error('Error loading directory structure:', data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+        
+        // Render file structure function
+        function renderFileStructure(structure) {
+            fileExplorer.innerHTML = '';
+            
+            const buildTree = (obj, parentEl) => {
+                for (const key in obj) {
+                    if (obj[key] === null) {
+                        // This is a file
+                        const fileEl = document.createElement('div');
+                        fileEl.className = 'file';
+                        fileEl.innerHTML = `
+                            <i class="fas fa-file file-icon"></i>
+                            <div class="file-name">${key}</div>
+                        `;
+                        fileEl.setAttribute('data-path', key);
+                        fileEl.addEventListener('click', function() {
+                            const filePath = this.getAttribute('data-path');
+                            openFile(filePath);
+                        });
+                        parentEl.appendChild(fileEl);
+                    } else {
+                        // This is a folder
+                        const folderEl = document.createElement('div');
+                        folderEl.className = 'folder';
+                        
+                        const folderHeader = document.createElement('div');
+                        folderHeader.className = 'folder-header';
+                        folderHeader.innerHTML = `
+                            <i class="fas fa-folder folder-icon"></i>
+                            <div class="folder-name">${key}</div>
+                            <i class="fas fa-chevron-right folder-toggle"></i>
+                        `;
+                        folderEl.appendChild(folderHeader);
+                        
+                        const folderContent = document.createElement('div');
+                        folderContent.className = 'folder-content';
+                        folderEl.appendChild(folderContent);
+                        
+                        folderHeader.addEventListener('click', function() {
+                            const toggle = this.querySelector('.folder-toggle');
+                            const content = this.parentElement.querySelector('.folder-content');
+                            
+                            toggle.classList.toggle('open');
+                            content.classList.toggle('open');
+                            
+                            // Change folder icon
+                            const folderIcon = this.querySelector('.folder-icon');
+                            if (content.classList.contains('open')) {
+                                folderIcon.classList.remove('fa-folder');
+                                folderIcon.classList.add('fa-folder-open');
+                            } else {
+                                folderIcon.classList.remove('fa-folder-open');
+                                folderIcon.classList.add('fa-folder');
+                            }
+                        });
+                        
+                        buildTree(obj[key], folderContent);
+                        parentEl.appendChild(folderEl);
+                    }
+                }
+            };
+            
+            buildTree(structure, fileExplorer);
+        }
+        
+        // Open file function
+        function openFile(path) {
+            fetch(`/api/file_content?path=${encodeURIComponent(path)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        fileCodeContent.textContent = data.content;
+                        filePath.textContent = data.path;
+                        fileContent.classList.add('active');
+                        chatArea.style.display = 'none';
+                        
+                        // Apply syntax highlighting
+                        hljs.highlightBlock(fileCodeContent);
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    alert('Error: ' + error.message);
+                });
+        }
+        
+        // Send user message function
+        function sendUserMessage() {
+            const message = userInput.value.trim();
+            if (!message) return;
+            
+            // Add user message to chat
+            addUserMessage(message);
+            
+            // Clear input
+            userInput.value = '';
+            
+            // Show typing indicator
+            typingIndicator.classList.add('visible');
+            
+            // Get selected model and max tokens
+            const model = modelSelect.value;
+            const tokens = parseInt(maxTokens.value) || 1000;
+            
+            // Send message to server
+            fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    query: message,
+                    model: model,
+                    max_tokens: tokens
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Hide typing indicator
+                typingIndicator.classList.remove('visible');
+                
+                if (data.success) {
+                    // Add AI response to chat
+                    addAIMessage(data.response, data.agent, data.sources);
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                // Hide typing indicator
+                typingIndicator.classList.remove('visible');
+                alert('Error: ' + error.message);
+            });
+        }
+        
+        // Add user message to chat
+        function addUserMessage(message) {
+            const messageEl = document.createElement('div');
+            messageEl.className = 'message message-user';
+            messageEl.innerHTML = `
+                <div class="avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="message-content">
+                    <div class="message-header">
+                        <div class="message-name">You</div>
+                        <div class="message-time">${formatTime(new Date())}</div>
+                    </div>
+                    <div class="message-body">
+                        <p>${escapeHtml(message)}</p>
+                    </div>
+                </div>
+            `;
+            chatMessages.appendChild(messageEl);
+            
+            // Scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // Add AI message to chat
+        function addAIMessage(message, agent = 'RepoQueryChat', sources = []) {
+            const messageEl = document.createElement('div');
+            messageEl.className = 'message message-ai';
+            
+            // Process markdown in the message
+            const formattedMessage = marked.parse(message);
+            
+            let sourcesHtml = '';
+            if (sources && sources.length > 0) {
+                sourcesHtml = `
+                    <div class="message-sources">
+                        <div>Sources:</div>
+                        ${sources.map(source => `<span class="source-file" data-path="${source}">${source}</span>`).join('')}
+                    </div>
+                `;
+            }
+            
+            messageEl.innerHTML = `
+                <div class="avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="message-content">
+                    <div class="message-header">
+                        <div class="message-name">${agent || 'RepoQueryChat'}</div>
+                        <div class="message-time">${formatTime(new Date())}</div>
+                    </div>
+                    <div class="message-body">
+                        ${formattedMessage}
+                    </div>
+                    ${sourcesHtml}
+                </div>
+            `;
+            chatMessages.appendChild(messageEl);
+            
+            // Add event listeners to source files
+            const sourceFiles = messageEl.querySelectorAll('.source-file');
+            sourceFiles.forEach(sourceFile => {
+                sourceFile.addEventListener('click', function() {
+                    const filePath = this.getAttribute('data-path');
+                    openFile(filePath);
+                });
+            });
+            
+            // Apply syntax highlighting to code blocks
+            messageEl.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightBlock(block);
+            });
+            
+            // Scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // Helper functions
+        function formatTime(date) {
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+        
+        function escapeHtml(unsafe) {
+            return unsafe
+                 .replace(/&/g, "&amp;")
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;")
+                 .replace(/"/g, "&quot;")
+                 .replace(/'/g, "&#039;");
+        }
+        
+        function showLoading(message) {
+            loadingMessage.textContent = message;
+            loadingOverlay.classList.add('active');
+        }
+        
+        function hideLoading() {
+            loadingOverlay.classList.remove('active');
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,32 @@
+from setuptools import setup, find_packages
+
+setup(
+    name="RepoQueryChat",
+    version="0.1.0",
+    packages=find_packages(),
+    install_requires=[
+        "python-dotenv",
+        "numpy",
+        "faiss-cpu",
+        "requests",
+        "langchain-core",
+        "langchain-groq",
+        "langchain-openai",
+        "langchain-anthropic",
+        "langchain-google-genai",
+        "langchain-ollama",
+        "nbformat",
+        "pypdf",
+        "python-docx",
+        "openpyxl",
+        "python-pptx",
+        "pyarrow",
+        "flask",
+        "werkzeug",
+    ],
+    author="AI Repository Chat Team",
+    author_email="info@repoquerychat.io",
+    description="Chat with your code repositories using AI",
+    keywords="AI, chat, repository, code",
+    python_requires=">=3.8",
+)

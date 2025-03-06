@@ -1,0 +1,113 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RepoQueryChat - Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="theme-toggle">
+        <input type="checkbox" id="theme-switch">
+        <label for="theme-switch">
+            <i class="fas fa-moon"></i>
+            <i class="fas fa-sun"></i>
+            <span class="ball"></span>
+        </label>
+    </div>
+
+    <div class="dashboard-container">
+        <nav class="dashboard-nav">
+            <div class="dashboard-logo">
+                <i class="fas fa-robot"></i>
+                <span>RepoQueryChat</span>
+            </div>
+            <ul class="dashboard-menu">
+                <li class="active"><a href="#"><i class="fas fa-home"></i> Dashboard</a></li>
+                <li><a href="/repo_chat"><i class="fas fa-code-branch"></i> Chat with Repository</a></li>
+                <li><a href="#"><i class="fas fa-database"></i> Chat with Database</a></li>
+                <li><a href="#"><i class="fas fa-file-alt"></i> Chat with Documents</a></li>
+                <li><a href="#"><i class="fas fa-history"></i> Chat History</a></li>
+                <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+            </ul>
+            <div class="dashboard-user">
+                <div class="user-avatar">{{ username[0] }}</div>
+                <div class="user-info">
+                    <span class="user-name">{{ username }}</span>
+                    <a href="/" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </div>
+            </div>
+        </nav>
+
+        <main class="dashboard-main">
+            <header class="dashboard-header">
+                <h1>Welcome, {{ username }}</h1>
+                <p>Select a chat mode to get started</p>
+            </header>
+
+            <div class="chat-modes">
+                <div class="chat-mode-card" onclick="window.location.href='/repo_chat'">
+                    <div class="chat-mode-icon">
+                        <i class="fas fa-code-branch"></i>
+                    </div>
+                    <h3>Chat with Repository</h3>
+                    <p>Analyze and chat with code repositories from GitHub or local folders</p>
+                    <button class="chat-mode-btn">Get Started</button>
+                </div>
+                <div class="chat-mode-card">
+                    <div class="chat-mode-icon">
+                        <i class="fas fa-database"></i>
+                    </div>
+                    <h3>Chat with Database</h3>
+                    <p>Connect to SQL databases and chat with your data using natural language</p>
+                    <button class="chat-mode-btn">Coming Soon</button>
+                </div>
+                <div class="chat-mode-card">
+                    <div class="chat-mode-icon">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <h3>Chat with Documents</h3>
+                    <p>Upload PDFs, Word docs, and other files to chat with their contents</p>
+                    <button class="chat-mode-btn">Coming Soon</button>
+                </div>
+            </div>
+
+            <div class="dashboard-stats">
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-comment"></i></div>
+                    <div class="stat-info">
+                        <h4>Total Chats</h4>
+                        <p>12</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-code-branch"></i></div>
+                    <div class="stat-info">
+                        <h4>Repositories</h4>
+                        <p>5</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                    <div class="stat-info">
+                        <h4>Time Saved</h4>
+                        <p>8.3 hours</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-brain"></i></div>
+                    <div class="stat-info">
+                        <h4>AI Models</h4>
+                        <p>{{ available_models|length }}</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>

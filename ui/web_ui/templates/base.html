@@ -1,0 +1,105 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RepoQueryChat - {% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
+    <script>
+        // Initialize highlight.js
+        document.addEventListener('DOMContentLoaded', (event) => {
+            document.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightBlock(block);
+            });
+        });
+
+        // Function to toggle dark/light mode
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDarkMode);
+        }
+
+        // Set theme based on local storage or system preference
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedMode = localStorage.getItem('darkMode');
+            if (savedMode === 'true' || (savedMode === null && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.body.classList.add('dark-mode');
+            }
+        });
+    </script>
+    {% block additional_head %}{% endblock %}
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <i class="fas fa-robot"></i>
+            <span>RepoQueryChat</span>
+        </div>
+        <nav>
+            {% if session.get('user_id') %}
+                <a href="{{ url_for('repository_chat') }}" class="nav-item {% if request.endpoint == 'repository_chat' %}active{% endif %}">
+                    <i class="fas fa-code-branch"></i> Repo Chat
+                </a>
+                <a href="{{ url_for('database_chat') }}" class="nav-item {% if request.endpoint == 'database_chat' %}active{% endif %}">
+                    <i class="fas fa-database"></i> DB Chat
+                </a>
+                <a href="{{ url_for('documents_chat') }}" class="nav-item {% if request.endpoint == 'documents_chat' %}active{% endif %}">
+                    <i class="fas fa-file-alt"></i> Docs Chat
+                </a>
+            {% endif %}
+        </nav>
+        <div class="header-actions">
+            <button id="theme-toggle" onclick="toggleDarkMode()">
+                <i class="fas fa-moon"></i>
+                <i class="fas fa-sun"></i>
+            </button>
+            {% if session.get('user_id') %}
+                <div class="user-menu">
+                    <div class="user-menu-toggle">
+                        <i class="fas fa-user-circle"></i>
+                        <span>{{ session.get('user_name', 'User') }}</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="user-menu-dropdown">
+                        <a href="{{ url_for('logout') }}">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </header>
+
+    <div class="content-area">
+        {% block content %}{% endblock %}
+    </div>
+
+    <script>
+        // User menu toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const userMenuToggle = document.querySelector('.user-menu-toggle');
+            const userMenu = document.querySelector('.user-menu');
+            
+            if (userMenuToggle) {
+                userMenuToggle.addEventListener('click', function() {
+                    userMenu.classList.toggle('active');
+                });
+                
+                // Close menu when clicking outside
+                document.addEventListener('click', function(event) {
+                    if (!userMenu.contains(event.target)) {
+                        userMenu.classList.remove('active');
+                    }
+                });
+            }
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

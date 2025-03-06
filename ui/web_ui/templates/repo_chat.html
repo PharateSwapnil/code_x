@@ -1,0 +1,123 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RepoQueryChat - Repository Chat</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="theme-toggle">
+        <input type="checkbox" id="theme-switch">
+        <label for="theme-switch">
+            <i class="fas fa-moon"></i>
+            <i class="fas fa-sun"></i>
+            <span class="ball"></span>
+        </label>
+    </div>
+
+    <div class="chat-container">
+        <nav class="chat-nav">
+            <div class="chat-logo">
+                <i class="fas fa-robot"></i>
+                <span>RepoQueryChat</span>
+            </div>
+            <ul class="chat-menu">
+                <li><a href="/dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
+                <li class="active"><a href="/repo_chat"><i class="fas fa-code-branch"></i> Chat with Repository</a></li>
+                <li><a href="#"><i class="fas fa-database"></i> Chat with Database</a></li>
+                <li><a href="#"><i class="fas fa-file-alt"></i> Chat with Documents</a></li>
+                <li><a href="#"><i class="fas fa-history"></i> Chat History</a></li>
+                <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+            </ul>
+            <div class="chat-user">
+                <div class="user-avatar">{{ username[0] }}</div>
+                <div class="user-info">
+                    <span class="user-name">{{ username }}</span>
+                    <a href="/" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </div>
+            </div>
+        </nav>
+
+        <main class="chat-main">
+            <div class="chat-sidebar">
+                <div class="repo-section">
+                    <h3>Repository</h3>
+                    <div class="repo-input">
+                        <input type="text" id="repo-path" placeholder="GitHub URL or local path">
+                        <button id="process-repo-btn">Process</button>
+                    </div>
+                </div>
+
+                <div class="model-section">
+                    <h3>AI Model</h3>
+                    <select id="model-selector">
+                        {% for model in available_models %}
+                            <option value="{{ model }}">{{ model }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="tokens-section">
+                    <h3>Max Tokens</h3>
+                    <div class="token-slider">
+                        <input type="range" id="max-tokens" min="500" max="4000" step="100" value="1000">
+                        <div class="token-values">
+                            <span>500</span>
+                            <span id="token-value">1000</span>
+                            <span>4000</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="explorer-section">
+                    <h3>Repository Explorer</h3>
+                    <div class="directory-selector">
+                        <select id="directory-selector">
+                            <option value="">Select directory</option>
+                        </select>
+                    </div>
+                    <div id="file-tree" class="file-tree">
+                        <div class="placeholder-message">
+                            Process a repository to see files
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-content">
+                <div id="file-viewer" class="file-viewer hidden">
+                    <div class="file-header">
+                        <h3 id="file-name">File Name</h3>
+                        <button id="close-file-btn"><i class="fas fa-times"></i></button>
+                    </div>
+                    <pre id="file-content"></pre>
+                </div>
+
+                <div id="chat-interface" class="chat-interface">
+                    <div id="chat-messages" class="chat-messages">
+                        <div class="chat-welcome">
+                            <h2>Welcome to Repository Chat!</h2>
+                            <p>Process a repository to start chatting about the code.</p>
+                        </div>
+                    </div>
+                    <div class="chat-input-container">
+                        <textarea id="chat-input" placeholder="Ask something about the repository..."></textarea>
+                        <button id="send-message-btn" disabled><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="loading-spinner"></div>
+        <p id="loading-message">Processing repository...</p>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/repo_chat.js') }}"></script>
+</body>
+</html>

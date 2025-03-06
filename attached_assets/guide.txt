@@ -1,0 +1,30 @@
+3. Requirements.txt Necessity
+Yes, a requirements.txt file is recommended for easier setup, even though you're using pyproject.toml. Benefits include:
+
+It's the standard format that most Python developers understand
+It works with pip install -r requirements.txt command directly
+It's compatible with more platforms and deployment services
+I've created a comprehensive requirements.txt file above.
+
+4. Unwanted Files for Local Running
+Files you don't need to run locally:
+
+deepseek-r1-distill-llama-70b-specdec (appears to be an model data directory)
+.replit and .streamlit configuration files
+generated-icon.png (just an icon for Replit)
+uv.lock (dependency lock file for Replit)
+5. Parallel Processing Implementation
+I've implemented parallel processing in several ways:
+
+Added a ParallelProcessor utility class
+Updated RepositoryHandler to support parallel file operations
+Modified app.py to process files in parallel with progress indicators
+Added concurrent file embedding generation
+6. Support for Additional LLM Providers
+I've added comprehensive support for:
+
+Groq (already supported)
+OpenAI
+Anthropic/Claude
+Google AI (Gemini)
+Ollama (for local model usage)

@@ -1,0 +1,42 @@
+/* Chat container styling */
+.stChatMessage {
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    font-family: 'Inter', sans-serif;
+}
+
+/* User message styling */
+.stChatMessage[data-role="user"] {
+    background-color: #0066CC;
+    color: white;
+}
+
+/* Assistant message styling */
+.stChatMessage[data-role="assistant"] {
+    background-color: #FFFFFF;
+    border: 1px solid #E0E0E0;
+}
+
+/* Sidebar styling */
+.css-1d391kg {
+    background-color: #F8F9FA;
+}
+
+/* Input field styling */
+.stTextInput input {
+    border-radius: 0.5rem;
+    border: 1px solid #E0E0E0;
+}
+
+/* Button styling */
+.stButton button {
+    background-color: #0066CC;
+    color: white;
+    border-radius: 0.5rem;
+}
+
+/* Success message styling */
+.success {
+    color: #28A745;
+}

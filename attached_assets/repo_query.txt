@@ -1,0 +1,105 @@
+i wanted to create one end to end project which is basically using AI chatbot
+i can interact with repository like github, bitbucket, gitlab, including local folder, or any zip file
+i) for i/p i want box where i will pass repo path
+    1. for github, bitbucket, gitlab user needs to pass github repo link or
+        if it is private then pass required credentials like userID, password, and send authentication message to github owner for access.
+    2. if repo is downloded in zip needs to be unzip after giving zip file path
+    3. same for local repo (if project is in personal computer needs to pass direcotry path)
+ii) after getting path download repo in local (in zip) and extracte in temp_folder elif local repo path dont use temp_folder
+iii) after extracting create a vector database for that repo and use best embeddings for this use case.
+** i want support for all type of programming file formats including ipynb for that you can use nbformat library.
+    create functions for respective file formats, 
+    file_readers = {
+        '.txt': read_text_file,
+        '.csv': read_csv_file,
+        '.xls': read_excel_file,
+        '.xlsx': read_excel_file,
+        '.html': read_text_file,
+        '.pdf': read_pdf_file,
+        '.docx': read_docx_file,
+        '.pptx': read_pptx_file,
+        '.ipynb': read_ipynb_file,
+        '.msgpack': read_msgpack_file,
+        '.h5': read_hdf5_file,
+        '.hdf5': read_hdf5_file,
+        '.xml': read_xml_file,
+        '.yaml': read_yaml_file,
+        '.pkl': read_pkl_file,
+        '.db': read_sqlite_file,
+        '.lock': read_package_file,
+        '.pipfile': read_package_file,
+        '.tar': read_compressed_file,
+        '.gz': read_compressed_file,
+        '.parquet': read_parquet_file,
+        '.tsv': read_tsv_file,
+    }
+    key : value --> file_format : function_to_read_that_file
+
+    **also add more formats if you want
+
+
+iv) i want to use langchain to interact with LLMs like langchain-ollama, langchain-groq, langchain-openai etc 
+## AI_models.py
+   groq_models = {
+    "llama-3.2-90b-vision-preview": {
+        "name": "llama-3.2-90b-vision",
+        "tokens": 8000,
+        "description": "Llama 3.2 90B Vision Preview: A large-scale vision model designed for high-resolution image analysis and complex visual tasks.",
+        "strengths": "Excellent for visual data processing, capable of handling high-resolution images and complex visual tasks."
+    },
+    "llama-3.1-70b-versatile": {
+        "name": "llama-3.1-70b-versatile",
+        "tokens": 8000,
+        "description": "Llama 3.1-70B is a powerful language model by Meta, designed for diverse NLP tasks with high accuracy.\
+                        It excels in understanding and generating human-like text.",
+        "strengths": [
+            "Effective text summarization and classification",
+            "Robust sentiment analysis and nuanced reasoning",
+            "Proficient in language modeling and dialogue systems",
+            "Competent code generation capabilities"
+        ]
+    },
+    "llama3-70b-8192": {
+        "name": "llama3-70b-solid",
+        "tokens": 8192,
+        "description": "Llama 3 70B: A versatile language model optimized for natural language understanding and generation with a context window of 8192 tokens.",
+        "strengths": "Versatile and balanced for general NLP tasks, with a good balance between performance and token capacity."
+    },
+
+this are some my groq_models and similarly i wanted to add for openai, google, ollama etc.
+
+v) after that based on users prompts follow the process
+        User Query Input
+            -->
+        Convert Query to Embedding
+            -->
+        Query Vector Database with Embedding
+            -->
+        Retrieve Relevant Information from Vector DB
+            -->
+        Generate Response Using Retrieved Information and Context
+            -->
+        Store Q&A History for Future Context
+            -->
+        Use Previous Response Context for New Questions (if relevant)
+
+*** create and Add AI agents for most Effective and efficient work
+
+vi) to follow the process you need embeddings, vector_DB, RAG create files accordingly.
+
+for WebUI in sidebar i want
+1. AI_model dropdown
+2. max_tokens
+3. box for repo_path
+4. wanted to see current repository structure like github
+*** i want compectible WebUI for above requirements for that you can use html, css, javascript.
+
+dont forget to create requirement.txt
+
+##.env file
+temp_folder = "extracted_repo_folder_path"
+HUGGINGFACEHUB_API_TOKEN = ""
+GOOGLE_API_KEY = ""
+OPENAI_API_KEY = ""
+GROQ_API_KEY = ""
+** add needed secreat credentials
