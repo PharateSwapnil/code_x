@@ -1,4 +1,5 @@
 import concurrent.futures
+import os
 from typing import List, Callable, Any, TypeVar, Dict, Optional
 
 T = TypeVar('T')
@@ -6,6 +7,10 @@ R = TypeVar('R')
 
 class ParallelProcessor:
     """Utility class for parallel processing operations"""
+    
+    def __init__(self, max_workers: int = 4):
+        """Initialize the parallel processor with max workers"""
+        self.max_workers = max_workers
 
     @staticmethod
     def process_items(items: List[T], 
@@ -74,11 +79,13 @@ class ParallelProcessor:
 
         return results
 
-    def process_directory(self, 
+    @classmethod
+    def process_directory(cls, 
                          directory: str, 
-                         file_filter: Optional[Callable[[str], R]] = None,
+                         file_filter: Optional[Callable[[str], bool]] = None,
                          process_func: Callable[[str], R] = None,
                          recursive: bool = True,
+                         max_workers: int = 4,
                          show_progress: bool = True) -> List[R]:
         """
         Process all files in a directory
@@ -87,6 +94,7 @@ class ParallelProcessor:
             file_filter: Optional function to filter files (return True to process)
             process_func: Function to apply to each file path
             recursive: Whether to recursively process subdirectories
+            max_workers: Maximum number of worker threads
             show_progress: Whether to show a progress bar
 
         Returns:
@@ -97,7 +105,7 @@ class ParallelProcessor:
 
         # Collect files to process
         files_to_process = []
-
+        
         if recursive:
             for root, _, files in os.walk(directory):
                 for file in files:
@@ -110,11 +118,12 @@ class ParallelProcessor:
                 if os.path.isfile(file_path) and (file_filter is None or file_filter(file_path)):
                     files_to_process.append(file_path)
 
-        # Process the files
-        return self.process_items(
+        # Create a processor instance and process the files
+        processor = cls(max_workers=max_workers)
+        return processor.process_items(
             items=files_to_process,
             process_func=process_func,
-            max_workers=self.max_workers
+            max_workers=max_workers
         )
 
     def find_files(self, 

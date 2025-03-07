@@ -1,21 +1,42 @@
-from pathlib import Path
 import os
+from pathlib import Path
 from typing import Dict, List, Optional, Any, Callable
 
 class UnifiedFileExplorer:
-    """Unified file explorer component to handle repository files"""
+    """Unified file explorer component that works with both Streamlit and Flask"""
 
     def __init__(self):
-        self.current_repo_path = None
-        self.directory_structure = {}
+        self.repository_path = None
+        self.directory_structure = None
         self.current_file_path = None
         self.file_contents = {}
 
-    def set_repository(self, repo_path: str, directory_structure: Dict):
-        """Set the current repository and its directory structure"""
-        self.current_repo_path = repo_path
-        self.directory_structure = directory_structure
+    def set_repository(self, path, structure=None):
+        """Set the current repository path and structure"""
+        if not path:
+            raise ValueError("Repository path cannot be empty")
+
+        # Ensure the path exists
+        if not os.path.exists(path):
+            # Try to find repository in cloned_repo directory
+            base_dir = os.path.join(os.getcwd(), 'cloned_repo')
+            if os.path.exists(base_dir):
+                subdirs = [d for d in os.listdir(base_dir) if os.path.isdir(os.path.join(base_dir, d))]
+                if subdirs:
+                    path = os.path.join(base_dir, subdirs[0])
+                    print(f"Auto-detected repository at: {path}")
+                    
+        if not os.path.exists(path):
+            raise ValueError(f"Repository path does not exist: {path}")
+
+        self.repository_path = path
+        self.directory_structure = structure
         self.current_file_path = None
+        
+    def has_repository(self):
+        """Check if a repository is loaded"""
+        return self.repository_path is not None and os.path.exists(self.repository_path)
+
 
     def get_directory_structure(self) -> Dict:
         """Get the current directory structure"""
@@ -43,17 +64,17 @@ class UnifiedFileExplorer:
         """Get the current file path"""
         return self.current_file_path
 
-    def get_repository_path(self) -> Optional[str]:
+    def get_repository_path(self):
         """Get the current repository path"""
-        return self.current_repo_path
+        return self.repository_path
 
     def get_file_paths(self, extensions: Optional[List[str]] = None) -> List[str]:
         """Get all file paths in the repository with optional extension filtering"""
-        if not self.current_repo_path or not os.path.exists(self.current_repo_path):
+        if not self.repository_path or not os.path.exists(self.repository_path):
             return []
 
         file_paths = []
-        for root, _, files in os.walk(self.current_repo_path):
+        for root, _, files in os.walk(self.repository_path):
             # Skip hidden directories
             if any(part.startswith('.') for part in Path(root).parts):
                 continue
@@ -79,9 +100,13 @@ class UnifiedFileExplorer:
         """Get the file extension"""
         return os.path.splitext(file_path)[1].lower()
 
-    def clear(self):
-        """Clear the current state"""
-        self.current_repo_path = None
-        self.directory_structure = {}
+    def clear_repository(self):
+        """Clear the current repository"""
+        self.repository_path = None
+        self.directory_structure = None
         self.current_file_path = None
         self.file_contents = {}
+
+    def has_repository(self):
+        """Check if a repository is loaded"""
+        return self.repository_path is not None and os.path.exists(self.repository_path)

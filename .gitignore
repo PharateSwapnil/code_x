@@ -1,0 +1,55 @@
+# Environment variables
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Replit specific
+.pythonlibs/
+.upm/
+.config/
+.replit
+replit.nix
+.cache/
+
+# Virtual Environment
+venv/
+ENV/
+
+# Temporary files
+tmp/
+temp/
+extracted_repo_folder/
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Vector store files
+*.index
+*.docs
+
+# Local development
+.DS_Store
+*.local

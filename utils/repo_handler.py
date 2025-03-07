@@ -42,8 +42,36 @@ class RepositoryHandler:
         else:
             # It's a local path
             final_path = repo_path_or_url
+            
+            # Handle relative paths within the workspace
+            if not os.path.isabs(final_path):
+                final_path = os.path.abspath(final_path)
+                
+            # Special handling for cloned_repo directory
+            if 'cloned_repo' in repo_path_or_url or not os.path.exists(final_path):
+                # Auto-detect repository in cloned_repo directory
+                base_dir = os.path.join(os.getcwd(), 'cloned_repo')
+                if os.path.exists(base_dir):
+                    # Find all subdirectories
+                    subdirs = [os.path.join(base_dir, d) for d in os.listdir(base_dir) 
+                              if os.path.isdir(os.path.join(base_dir, d))]
+                    
+                    # If subdirectories exist, use the first one or match by name
+                    if subdirs:
+                        if repo_path_or_url and any(repo_path_or_url in d for d in subdirs):
+                            # Try to find a matching subdirectory
+                            for d in subdirs:
+                                if repo_path_or_url in d:
+                                    final_path = d
+                                    break
+                        else:
+                            # Use the first subdirectory
+                            final_path = subdirs[0]
+                        print(f"Auto-detected repository at: {final_path}")
+            
             if not os.path.exists(final_path):
-                raise Exception(f"Repository path does not exist: {final_path}")
+                raise Exception(f"Repository path does not exist: {final_path}. Please ensure the path is correct or the repository is cloned.")
+                
             directory_structure = self._get_directory_structure_parallel(final_path)
         
         # Process files in parallel
@@ -113,8 +141,15 @@ class RepositoryHandler:
     
     def get_remote_repository(self, repo_url, branch_name=None):
         """Get a remote repository (GitHub, GitLab, or Bitbucket) by downloading the ZIP"""
-        repo_name = os.path.basename(repo_url.rstrip('/').rstrip('.git'))
+        # Clean up repo URL to ensure consistency
+        repo_url = repo_url.rstrip('/')
+        if repo_url.endswith('.git'):
+            repo_url = repo_url[:-4]
+            
+        repo_name = os.path.basename(repo_url)
         branch_name = branch_name or 'main'  # Default to main, may need to try master as fallback
+        
+        print(f"Processing repository: {repo_url}, branch: {branch_name}")
         
         # First try to clone the repository directly
         try:
@@ -127,20 +162,36 @@ class RepositoryHandler:
         # If git clone fails, try downloading ZIP
         # Determine the appropriate ZIP URL based on the repository type
         if 'github.com' in repo_url:
+            # GitHub repository handling
+            # Extract owner and repo name from URL
+            parts = repo_url.split('github.com/')
+            if len(parts) < 2:
+                raise Exception("Invalid GitHub URL format")
+                
+            repo_path = parts[1]
+            # Handle URL format variations (both with and without '/blob/main' parts)
+            if '/blob/' in repo_path:
+                repo_path = repo_path.split('/blob/')[0]
+                
             # Try main branch first
-            zip_url = f'{repo_url}/archive/refs/heads/{branch_name}.zip'
+            zip_url = f'https://github.com/{repo_path}/archive/refs/heads/{branch_name}.zip'
             print(f"Requesting ZIP from GitHub: {zip_url}")
             
             # If main branch fails, try master
             if not self._url_exists(zip_url) and branch_name == 'main':
                 branch_name = 'master'
-                zip_url = f'{repo_url}/archive/refs/heads/{branch_name}.zip'
+                zip_url = f'https://github.com/{repo_path}/archive/refs/heads/{branch_name}.zip'
                 print(f"Main branch not found, trying master: {zip_url}")
                 
                 # If master also fails, try the default branch
                 if not self._url_exists(zip_url):
-                    zip_url = f'{repo_url}/archive/HEAD.zip'
+                    zip_url = f'https://github.com/{repo_path}/archive/HEAD.zip'
                     print(f"Trying default branch: {zip_url}")
+                    
+                    # If all those fail, try direct download via codeload
+                    if not self._url_exists(zip_url):
+                        zip_url = f'https://codeload.github.com/{repo_path}/zip/refs/heads/master'
+                        print(f"Trying codeload URL: {zip_url}")
         elif 'gitlab.com' in repo_url:
             zip_url = f'{repo_url}/-/archive/{branch_name}/{repo_name}-{branch_name}.zip'
             print(f"Requesting ZIP from GitLab: {zip_url}")
@@ -162,9 +213,18 @@ class RepositoryHandler:
         else:
             raise Exception("Invalid URL: Only GitHub, GitLab, and Bitbucket links are supported.")
 
+        # Prepare zip path
         zip_path = os.path.join(self.extraction_base_dir, f'{repo_name}.zip')
-        self._download_zip_streaming(zip_url, zip_path)
+        
+        # Try to download the zip file with better error handling
+        try:
+            self._download_zip_streaming(zip_url, zip_path)
+        except Exception as e:
+            # Provide a more helpful error message
+            error_message = str(e)
+            raise Exception(f"Failed to download repository from {zip_url}: {error_message}")
 
+        # Process the zip file
         final_path = self.process_zip_file(zip_path)
         directory_structure = self._get_directory_structure_parallel(final_path)
         
